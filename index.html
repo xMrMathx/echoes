@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>ECHOES — 5v5 Tactical Shooter Prototype</title>
 <style>
   /* ============ ECHOES HUD / OVERLAY STYLES ============ */
@@ -155,6 +155,64 @@
   #endstats { font-size:16px; line-height:2; color:#cfd6e4; margin:10px 0 26px; letter-spacing:1px; }
   #endstats b { color:#fff; }
   .note { margin-top:18px; font-size:12px; color:#6b7288; letter-spacing:1px; }
+
+  /* ---------- touch controls (shown only on touch devices) ---------- */
+  #touchUI { display:none; position:fixed; inset:0; z-index:25; pointer-events:none; }
+  body.touch #touchUI { display:block; }
+  #joyZone { position:absolute; left:0; bottom:0; width:45%; height:62%; pointer-events:auto; touch-action:none; }
+  #lookZone { position:absolute; right:0; top:0; width:55%; height:100%; pointer-events:auto; touch-action:none; }
+  #joyBase { position:absolute; left:26px; bottom:96px; width:124px; height:124px; border-radius:50%;
+    background:rgba(255,255,255,.07); border:2px solid rgba(255,255,255,.22); }
+  #joyKnob { position:absolute; left:50%; top:50%; width:54px; height:54px; border-radius:50%;
+    background:rgba(155,234,255,.35); border:2px solid rgba(155,234,255,.7);
+    transform:translate(-50%,-50%); box-shadow:0 0 14px rgba(80,200,255,.35); }
+  .tbtn { position:absolute; pointer-events:auto; touch-action:none; border-radius:50%;
+    background:rgba(10,14,22,.45); border:2px solid rgba(255,255,255,.30); color:#e8ecf4;
+    font-weight:800; letter-spacing:1px; display:flex; align-items:center; justify-content:center;
+    text-shadow:0 1px 4px #000; }
+  .tbtn.on { background:rgba(80,180,255,.40); border-color:#7db8ff; }
+  #btnFire { right:22px; bottom:96px; width:96px; height:96px; font-size:15px; border-color:rgba(255,120,90,.55); }
+  #btnFire.on { background:rgba(255,110,70,.45); border-color:#ff8a5a; }
+  #btnADS { right:134px; bottom:104px; width:64px; height:64px; font-size:12px; }
+  #btnJump { right:30px; bottom:210px; width:64px; height:64px; font-size:12px; }
+  #btnReload { right:112px; bottom:196px; width:58px; height:58px; font-size:11px; }
+  #btnEcho { right:30px; bottom:292px; width:64px; height:64px; font-size:12px; border-color:rgba(80,220,255,.55); }
+  #btnEcho.on { background:rgba(80,220,255,.35); border-color:#9beaff; }
+  #btnMode { right:112px; bottom:276px; width:58px; height:58px; font-size:10px; border-color:rgba(80,220,255,.45); }
+  #btnGuard { right:186px; bottom:266px; width:58px; height:58px; font-size:10px; border-color:rgba(80,220,255,.45); }
+  body.touch #echohint { display:none; }
+
+  /* ---------- mobile / narrow screens: HUD never overlaps ---------- */
+  @media (max-width:700px) {
+    #topleft { left:10px; top:10px; }
+    #scores { font-size:15px; letter-spacing:1px; margin-bottom:4px; white-space:nowrap; }
+    #killfeed { max-width:170px; }
+    .feeditem { font-size:10px; padding:3px 7px; }
+    #topcenter { width:88vw; top:40px; }
+    #phaselabel { font-size:10px; letter-spacing:1px; margin-bottom:3px; white-space:nowrap; }
+    #zonestatus { font-size:10px; height:14px; }
+    .capbar { height:7px; }
+    #timer { font-size:11px; margin-top:3px; }
+    #bottomleft { left:10px; right:10px; bottom:8px; width:auto; }
+    #hpwrap { padding:6px 10px; }
+    #hplabel { font-size:9px; margin-bottom:4px; }
+    #hpbar { height:8px; }
+    #bottomright { left:auto; right:10px; top:8px; bottom:auto; }
+    #ammowrap { padding:6px 10px; }
+    #ammo { font-size:20px; }
+    #ammo .mag { font-size:13px; }
+    #reloadhint { font-size:9px; height:12px; }
+    #bottomcenter { bottom:56px; }
+    #echopill { font-size:11px; padding:6px 14px; letter-spacing:1px; }
+    #bannertitle { font-size:30px; letter-spacing:4px; }
+    #bannersub { font-size:12px; letter-spacing:2px; }
+    #respawnmsg { font-size:14px; top:62%; }
+    #crosshair { --sp:14px; --ln:7px; }
+    .controls { font-size:11px; padding:12px 16px; gap:5px 14px; max-width:92vw; max-height:38vh; overflow:auto; }
+    .overlay h1 { font-size:44px; letter-spacing:8px; }
+    .overlay h2 { font-size:11px; letter-spacing:3px; }
+    .bigbtn { font-size:16px; padding:14px 40px; }
+  }
 </style>
 </head>
 <body>
@@ -193,13 +251,24 @@
   </div>
   <div id="banner"><div id="bannertitle"></div><div id="bannersub"></div></div>
   <div id="respawnmsg"></div>
+  <div id="touchUI">
+    <div id="joyZone"><div id="joyBase"><div id="joyKnob"></div></div></div>
+    <div id="lookZone"></div>
+    <div class="tbtn" id="btnFire">FIRE</div>
+    <div class="tbtn" id="btnADS">ADS</div>
+    <div class="tbtn" id="btnJump">JUMP</div>
+    <div class="tbtn" id="btnReload">RLD</div>
+    <div class="tbtn" id="btnEcho">ECHO</div>
+    <div class="tbtn" id="btnMode">MODE</div>
+    <div class="tbtn" id="btnGuard">GRD</div>
+  </div>
 </div>
 
 <!-- ==================== OVERLAYS ==================== -->
 <div id="startOverlay" class="overlay">
   <h1>ECHOES</h1>
   <h2>5V5 OVER-THE-SHOULDER TACTICAL PROTOTYPE</h2>
-  <div class="controls">
+  <div class="controls" id="controlsList">
     <b>W A S D</b><span>move</span>
     <b>MOUSE</b><span>look · <b>LMB</b> fire · <b>RMB</b> aim (ADS)</span>
     <b>SHIFT / SPACE / C</b><span>sprint · jump · crouch</span>
@@ -436,10 +505,11 @@ function makeHumanoid(opts) {
   }
 
   const skinM = mat(o.skin);
-  const clothM = mat(0x2b303c, 0x000000, 0, 0.8, 0.05);
+  const clothM = mat(0x39414f, 0x000000, 0, 0.75, 0.08);
   const teamM = mat(o.teamColor, o.teamColor, 0.45, 0.35, 0.6);   // armor
-  const darkM = mat(0x14161c, 0x000000, 0, 0.5, 0.4);
-  const visorM = mat(0x0a0e18, 0x223a66, 0.7, 0.15, 0.9);          // glossy visor
+  const darkM = mat(0x1a1d26, 0x000000, 0, 0.5, 0.4);
+  const glowColor = o.teamColor === TEAM_COLOR.blue ? 0x7df3ff : 0xffc46b;
+  const visorM = mat(0x0a0e18, glowColor, 1.8, 0.15, 0.9);        // glowing visor slit
 
   const pivots = {};
   pivots.root = root;
@@ -478,7 +548,10 @@ function makeHumanoid(opts) {
     const el = new THREE.Group(); el.position.y = -0.32; sh.add(el);
     const fore = mesh(new THREE.CapsuleGeometry(0.06, 0.22, 6, 14), skinM);
     fore.position.y = -0.14; el.add(fore); fore.userData.part = 'body';
-    const hand = mesh(new THREE.SphereGeometry(0.075, 14, 10), skinM);
+    // team-colored forearm guard
+    const fguard = mesh(new THREE.CapsuleGeometry(0.075, 0.15, 6, 14), teamM);
+    fguard.position.y = -0.12; el.add(fguard); fguard.userData.part = 'body';
+    const hand = mesh(new THREE.SphereGeometry(0.062, 14, 10), skinM);
     hand.position.y = -0.29; el.add(hand); hand.userData.part = 'body';
     return { sh, el };
   }
@@ -494,6 +567,9 @@ function makeHumanoid(opts) {
     const knee = new THREE.Group(); knee.position.y = -0.42; hip.add(knee);
     const shin = mesh(new THREE.CapsuleGeometry(0.075, 0.30, 6, 14), darkM);
     shin.position.y = -0.19; knee.add(shin); shin.userData.part = 'body';
+    // team-colored shin guard
+    const sguard = mesh(new THREE.CapsuleGeometry(0.088, 0.20, 6, 14), teamM);
+    sguard.position.set(0, -0.16, 0.035); knee.add(sguard); sguard.userData.part = 'body';
     const foot = mesh(new THREE.SphereGeometry(0.095, 14, 10), darkM);
     foot.scale.set(1.0, 0.55, 1.55); foot.position.set(0, -0.40, 0.05); knee.add(foot);
     foot.userData.part = 'body';
@@ -508,26 +584,42 @@ function makeHumanoid(opts) {
   pivots.head = headG;
   const head = mesh(new THREE.SphereGeometry(0.16, 24, 18), skinM);
   head.position.y = 0.14; headG.add(head); head.userData.part = 'head';
-  // visor — small dark glossy accessory (flattened box is fine as an accessory)
-  const visor = mesh(new THREE.BoxGeometry(0.22, 0.085, 0.10), visorM);
-  visor.position.set(0, 0.155, 0.105); headG.add(visor);
-  // helmet stripe — thin team-colored band
-  const stripe = mesh(new THREE.TorusGeometry(0.152, 0.022, 10, 28), teamM);
-  stripe.rotation.x = Math.PI / 2; stripe.position.y = 0.21; headG.add(stripe);
+  // helmet — smooth dome shell over the top/back of the head
+  const helmet = mesh(new THREE.SphereGeometry(0.185, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.55), darkM);
+  helmet.position.y = 0.155; helmet.rotation.x = -0.35; headG.add(helmet);
+  helmet.userData.part = 'head';
+  // helmet crest — team-colored fin along the top (smooth capsule, never boxy)
+  const crest = mesh(new THREE.CapsuleGeometry(0.035, 0.20, 6, 12), teamM);
+  crest.rotation.x = Math.PI / 2 - 0.25; crest.position.set(0, 0.30, -0.02); headG.add(crest);
+  crest.userData.part = 'head';
+  // visor — glowing slit across the face
+  const visor = mesh(new THREE.BoxGeometry(0.24, 0.07, 0.06), visorM);
+  visor.position.set(0, 0.15, 0.125); headG.add(visor);
 
-  // ---- rifle (cylinders + tiny accent boxes allowed) ----
+  // ---- rifle (smooth tactical rifle: chunky body, stock, glowing sight, foregrip) ----
   const rifle = new THREE.Group();
-  const rBody = mesh(new THREE.CylinderGeometry(0.045, 0.052, 0.55, 12), darkM);
+  const rBody = mesh(new THREE.CylinderGeometry(0.06, 0.066, 0.55, 12), darkM);
   rBody.rotation.x = Math.PI / 2; rifle.add(rBody);
-  const barrel = mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.48, 10), darkM);
-  barrel.rotation.x = Math.PI / 2; barrel.position.z = 0.46; rifle.add(barrel);
-  const grip = mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.16, 8), darkM);
-  grip.position.set(0, -0.10, 0.02); grip.rotation.x = 0.25; rifle.add(grip);
-  const mag = mesh(new THREE.BoxGeometry(0.055, 0.15, 0.075), darkM);
-  mag.position.set(0, -0.10, 0.14); mag.rotation.x = 0.15; rifle.add(mag);
+  const barrel = mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.42, 10), darkM);
+  barrel.rotation.x = Math.PI / 2; barrel.position.z = 0.44; rifle.add(barrel);
+  const muzzleBrake = mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.10, 10), teamM);
+  muzzleBrake.rotation.x = Math.PI / 2; muzzleBrake.position.z = 0.62; rifle.add(muzzleBrake);
+  const stock = mesh(new THREE.CapsuleGeometry(0.055, 0.22, 6, 10), darkM);
+  stock.rotation.x = Math.PI / 2 - 0.35; stock.position.set(0, -0.06, -0.36); rifle.add(stock);
+  const grip = mesh(new THREE.CylinderGeometry(0.032, 0.038, 0.16, 8), darkM);
+  grip.position.set(0, -0.11, 0.02); grip.rotation.x = 0.25; rifle.add(grip);
+  const foregrip = mesh(new THREE.CylinderGeometry(0.028, 0.032, 0.14, 8), darkM);
+  foregrip.position.set(0, -0.10, 0.30); foregrip.rotation.x = -0.15; rifle.add(foregrip);
+  const mag = mesh(new THREE.BoxGeometry(0.06, 0.16, 0.08), darkM);
+  mag.position.set(0, -0.11, 0.14); mag.rotation.x = 0.15; rifle.add(mag);
+  // glowing team sight on top
+  const sightBase = mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.10, 8), darkM);
+  sightBase.position.set(0, 0.09, 0.05); rifle.add(sightBase);
+  const sightDot = mesh(new THREE.SphereGeometry(0.028, 10, 8), visorM);
+  sightDot.position.set(0, 0.15, 0.05); rifle.add(sightDot);
   const strip = mesh(new THREE.BoxGeometry(0.018, 0.018, 0.42), teamM);
-  strip.position.set(0.052, 0.035, 0.18); rifle.add(strip);
-  const muzzle = new THREE.Object3D(); muzzle.position.z = 0.72; rifle.add(muzzle);
+  strip.position.set(0.062, 0.04, 0.18); rifle.add(strip);
+  const muzzle = new THREE.Object3D(); muzzle.position.z = 0.70; rifle.add(muzzle);
   rifle.position.set(0.27, 0.26, 0.30); rifle.rotation.y = -0.05;
   spine.add(rifle);
 
@@ -813,34 +905,47 @@ function makeEntityBase(name, team, isEcho, owner) {
   return e;
 }
 
+function formationPos(team, idx) {
+  // loose wedge formation behind the team spawn, facing mid — no more spawn clump
+  const base = team === BLUE ? BLUE_SPAWN : ORANGE_SPAWN;
+  const dir = team === BLUE ? 1 : -1;   // blue at +z faces -z; orange mirrored
+  const slots = [
+    [0, 0], [-5, 3.5], [5, 3.5], [-10, 7], [10, 7], [-2.5, 9], [2.5, 9],
+  ];
+  const s = slots[idx % slots.length];
+  return new THREE.Vector3(base.x + s[0], 0, base.z + dir * s[1]);
+}
+
 function createTeams() {
   const blueNames = ['Vex', 'Halo', 'Drift', 'Juno'];
   const orangeNames = ['Raptor', 'Sable', 'Krait', 'Onyx', 'Mira'];
   // player (blue)
   player = makeEntityBase('You', BLUE, false, null);
   player.isPlayer = true;
-  player.group.position.copy(spawnPosFor(BLUE));
+  player.group.position.copy(formationPos(BLUE, 0));
   player.yaw = Math.PI; // face mid (-z? blue at +z faces -z -> yaw PI gives forward (0,0,1)? check below)
   combatants.push(player);
   // 4 blue bots
-  for (const n of blueNames) {
-    const b = makeEntityBase(n, BLUE, false, null);
-    b.isBot = true; b.group.position.copy(spawnPosFor(BLUE));
+  for (let i = 0; i < blueNames.length; i++) {
+    const b = makeEntityBase(blueNames[i], BLUE, false, null);
+    b.isBot = true; b.group.position.copy(formationPos(BLUE, i + 1));
     combatants.push(b);
   }
   // 5 orange bots
-  for (const n of orangeNames) {
-    const b = makeEntityBase(n, ORANGE, false, null);
-    b.isBot = true; b.group.position.copy(spawnPosFor(ORANGE));
+  for (let i = 0; i < orangeNames.length; i++) {
+    const b = makeEntityBase(orangeNames[i], ORANGE, false, null);
+    b.isBot = true; b.group.position.copy(formationPos(ORANGE, i));
     b.yaw = 0;
     combatants.push(b);
   }
-  // echoes: one per combatant
+  // echoes: one per combatant, offset to their owner's side
+  let ei = 0;
   for (const c of combatants) {
     const echo = makeEntityBase(c.name + "'s Echo", c.team, true, c);
     echo.isBot = !c.isPlayer;
     echo.mode = c.isPlayer ? 'SEEK' : 'FOLLOW';
-    echo.group.position.copy(c.group.position).add(new THREE.Vector3(rand(-2, 2), 0, rand(-2, 2)));
+    const side = (ei % 2 === 0) ? 2.6 : -2.6; ei++;
+    echo.group.position.copy(c.group.position).add(new THREE.Vector3(side, 0, 1.4));
     c.echo = echo;
     if (c.isPlayer) playerEcho = echo;
   }
@@ -859,6 +964,8 @@ const input = {
   keys: {}, firing: false, adsHeld: false,
   yaw: 0, pitch: 0,   // yaw 0 = facing -z (blue spawn faces mid)
   pointerLocked: false, fallback: false, started: false,
+  joyX: 0, joyY: 0, jumpPressed: false,   // touch controls
+  joyId: null, lookId: null, lastLX: 0, lastLY: 0,
 };
 const SENS = 0.0023;
 
@@ -927,6 +1034,119 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('keyup', (e) => { input.keys[e.code] = false; });
 window.addEventListener('blur', () => { input.firing = false; input.adsHeld = false; input.keys = {}; });
+
+/* ---- touch controls: virtual joystick (left), look-drag (right), buttons ----
+   No pointer-lock dependency on touch devices. */
+const IS_TOUCH = (('ontouchstart' in window) || navigator.maxTouchPoints > 0) &&
+  (window.matchMedia('(pointer:coarse)').matches || Math.min(window.innerWidth, window.innerHeight) < 700);
+const TOUCH_SENS = 0.0045;
+const JOY_R = 52;
+let joyCX = 0, joyCY = 0;
+if (IS_TOUCH) {
+  document.body.classList.add('touch');
+  input.fallback = true;   // never attempt pointer lock on touch devices
+  // touch instructions on the start overlay instead of keyboard controls
+  document.getElementById('controlsList').innerHTML =
+    '<b>LEFT STICK</b><span>move</span>' +
+    '<b>DRAG RIGHT</b><span>look · aim</span>' +
+    '<b>FIRE</b><span>shoot (hold)</span>' +
+    '<b>ADS</b><span>toggle aim-down-sights</span>' +
+    '<b>JUMP / RLD</b><span>jump · reload</span>' +
+    '<b>ECHO</b><span>summon Echo to your position</span>' +
+    '<b>MODE</b><span>cycle Echo: Seek · Cover · Guard · Free</span>' +
+    '<b>GRD</b><span>set Echo guard waypoint at aim point</span>';
+  document.getElementById('deployBtn').textContent = 'TAP TO DEPLOY';
+  const joyZone = document.getElementById('joyZone');
+  const joyBase = document.getElementById('joyBase');
+  const joyKnob = document.getElementById('joyKnob');
+  const lookZone = document.getElementById('lookZone');
+  const setKnob = (dx, dy) => {
+    joyKnob.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
+  };
+  joyZone.addEventListener('touchstart', (e) => {
+    e.preventDefault(); AudioSys.init(); AudioSys.resume();
+    if (input.joyId !== null) return;
+    const t = e.changedTouches[0];
+    input.joyId = t.identifier;
+    // float the stick base to the thumb
+    const bx = clamp(t.clientX, 90, window.innerWidth * 0.45 - 30);
+    const by = clamp(t.clientY, window.innerHeight - 300, window.innerHeight - 130);
+    joyCX = bx; joyCY = by;
+    joyBase.style.left = (bx - 62) + 'px';
+    joyBase.style.top = (by - 62) + 'px';
+    joyBase.style.bottom = 'auto';
+    setKnob(0, 0);
+  }, { passive: false });
+  const joyMove = (e) => {
+    for (const t of e.changedTouches) {
+      if (t.identifier !== input.joyId) continue;
+      let dx = t.clientX - joyCX, dy = t.clientY - joyCY;
+      const d = Math.hypot(dx, dy);
+      if (d > JOY_R) { dx = dx / d * JOY_R; dy = dy / d * JOY_R; }
+      setKnob(dx, dy);
+      input.joyX = dx / JOY_R;
+      input.joyY = -dy / JOY_R;   // up on the stick = forward
+    }
+  };
+  joyZone.addEventListener('touchmove', (e) => { e.preventDefault(); joyMove(e); }, { passive: false });
+  const joyEnd = (e) => {
+    for (const t of e.changedTouches) {
+      if (t.identifier !== input.joyId) continue;
+      input.joyId = null; input.joyX = 0; input.joyY = 0; setKnob(0, 0);
+    }
+  };
+  joyZone.addEventListener('touchend', joyEnd);
+  joyZone.addEventListener('touchcancel', joyEnd);
+  // look / aim: drag anywhere on the right half
+  lookZone.addEventListener('touchstart', (e) => {
+    e.preventDefault(); AudioSys.init(); AudioSys.resume();
+    const t = e.changedTouches[0];
+    input.lookId = t.identifier; input.lastLX = t.clientX; input.lastLY = t.clientY;
+  }, { passive: false });
+  lookZone.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!input.started || state.phase === 'over') return;
+    for (const t of e.changedTouches) {
+      if (t.identifier !== input.lookId) continue;
+      input.yaw -= (t.clientX - input.lastLX) * TOUCH_SENS;
+      input.pitch = clamp(input.pitch - (t.clientY - input.lastLY) * TOUCH_SENS, -1.35, 1.35);
+      input.lastLX = t.clientX; input.lastLY = t.clientY;
+    }
+  }, { passive: false });
+  const lookEnd = (e) => {
+    for (const t of e.changedTouches) if (t.identifier === input.lookId) input.lookId = null;
+  };
+  lookZone.addEventListener('touchend', lookEnd);
+  lookZone.addEventListener('touchcancel', lookEnd);
+  // buttons
+  const bindBtn = (id, down, up) => {
+    const b = document.getElementById(id);
+    b.addEventListener('touchstart', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      AudioSys.init(); AudioSys.resume();
+      b.classList.add('on'); down();
+    }, { passive: false });
+    const end = (e) => { e.preventDefault(); b.classList.remove('on'); if (up) up(); };
+    b.addEventListener('touchend', end);
+    b.addEventListener('touchcancel', end);
+  };
+  const ECHO_MODES = ['SEEK', 'COVER', 'GUARD', 'FREE'];
+  bindBtn('btnFire', () => { input.firing = true; }, () => { input.firing = false; });
+  bindBtn('btnADS', () => { input.adsHeld = !input.adsHeld; });
+  bindBtn('btnJump', () => { input.jumpPressed = true; });
+  bindBtn('btnReload', () => { if (input.started && state.phase !== 'over') startReload(); });
+  bindBtn('btnEcho', () => { if (input.started && state.phase !== 'over') summonEcho(); });
+  bindBtn('btnMode', () => {
+    if (!input.started || state.phase === 'over') return;
+    const i = (ECHO_MODES.indexOf(playerEcho.mode) + 1) % ECHO_MODES.length;
+    setEchoMode(ECHO_MODES[i]);
+  });
+  bindBtn('btnGuard', () => { if (input.started && state.phase !== 'over') setGuardPoint(); });
+  // tap anywhere on the start overlay dismisses it on touch (big button still works too)
+  document.getElementById('startOverlay').addEventListener('touchend', () => {
+    if (!input.started) startGame(true);   // skipLock: no pointer lock on touch
+  }, { passive: true });
+}
 
 /* =====================================================================
    SECTION 9 — COMBAT (hitscan, damage, death, fx)
@@ -1254,6 +1474,9 @@ function updatePlayer(dt) {
   if (input.keys['KeyS']) iz -= 1;
   if (input.keys['KeyA']) ix -= 1;
   if (input.keys['KeyD']) ix += 1;
+  ix += input.joyX || 0; iz += input.joyY || 0;   // touch joystick
+  const _il = Math.hypot(ix, iz);
+  if (_il > 1) { ix /= _il; iz /= _il; }
   const sprint = isSprinting();
   const speed = p.crouch ? CFG.crouchSpeed : (sprint ? CFG.sprintSpeed : CFG.moveSpeed);
   const fwd = _v1.set(-Math.sin(p.yaw), 0, -Math.cos(p.yaw));
@@ -1267,8 +1490,8 @@ function updatePlayer(dt) {
   p.speed2D = Math.hypot(p.vel.x, p.vel.z);
 
   // jump / gravity
-  if (input.keys['Space'] && p.grounded && !p.crouch) {
-    p.vy = 7.4; p.grounded = false; AudioSys.jump();
+  if ((input.keys['Space'] || input.jumpPressed) && p.grounded && !p.crouch) {
+    p.vy = 7.4; p.grounded = false; AudioSys.jump(); input.jumpPressed = false;
   }
   p.vy -= 22 * dt;
   p.group.position.y += p.vy * dt;
@@ -1290,11 +1513,15 @@ function resolveObstaclePush(e) {
 }
 
 // --- camera: tight over-the-shoulder, ADS pulls in, collision pull-in ---
+// on narrow/portrait screens the camera pulls back + widens FOV so the
+// player doesn't fill the screen
 const _camDesired = new THREE.Vector3(), _camHead = new THREE.Vector3(), _lookDir = new THREE.Vector3();
 function updateCamera(dt) {
   const p = player;
   const adsT = p.adsT;
-  const offR = lerp(0.55, 0.35, adsT), offU = lerp(0.35, 0.22, adsT), offB = lerp(2.6, 1.35, adsT);
+  const narrow = Math.min(window.innerWidth, window.innerHeight) < 700;
+  const backMul = narrow ? 2.0 : 1.0;
+  const offR = lerp(0.55, 0.35, adsT), offU = lerp(0.35, 0.22, adsT), offB = lerp(2.6, 1.35, adsT) * backMul;
   const cp = Math.cos(p.pitch), sp2 = Math.sin(p.pitch);
   _lookDir.set(-Math.sin(p.yaw) * cp, sp2, -Math.cos(p.yaw) * cp);
   _camHead.set(p.group.position.x, p.group.position.y + 1.58 - (p.crouch ? 0.35 : 0), p.group.position.z);
@@ -1315,9 +1542,14 @@ function updateCamera(dt) {
   const k = 1 - Math.pow(0.00005, dt);   // smoothed
   camera.position.lerp(_camDesired, k);
   camera.lookAt(_v3.copy(_camHead).addScaledVector(_lookDir, 14));
-  const fovT = lerp(60, 42, adsT);
+  const fovT = lerp(narrow ? 70 : 60, narrow ? 52 : 42, adsT);
   if (Math.abs(camera.fov - fovT) > 0.01) { camera.fov = fovT; camera.updateProjectionMatrix(); }
 }
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
 /* =====================================================================
    SECTION 11 — BOT AI (10Hz think, steering, combat)
@@ -1913,6 +2145,11 @@ const ECHOES = {
   player: { hp: 100, pos: new THREE.Vector3() },
   get echoMode() { return playerEcho.mode; },
   setEchoMode(m) { setEchoMode(m); },
+  get yaw() { return input.yaw; },
+  get joy() { return { x: input.joyX, y: input.joyY }; },
+  get ammo() { return player.ammo; },
+  get firing() { return input.firing; },
+  get isTouch() { return IS_TOUCH; },
   forcePhase2(w) {
     if (state.phase !== 'phase1') return;
     if (w === BLUE) state.capture.blue = CFG.captureNeed; else state.capture.orange = CFG.captureNeed;
