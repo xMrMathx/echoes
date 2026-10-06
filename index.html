@@ -149,9 +149,9 @@
   .bigbtn:hover { filter:brightness(1.12); }
   #pauseOverlay, #endOverlay { display:none; }
   #endOverlay h1 { font-size:64px; font-weight:900; letter-spacing:10px;
-    background:linear-gradient(180deg,#bfe9ff,#2e7bff 60%,#0e2a66);
-    -webkit-background-clip:text; background-clip:text;
-    color:transparent; -webkit-text-fill-color:transparent; }
+    background:none; -webkit-background-clip:border-box; background-clip:border-box;
+    color:#eaf4ff; -webkit-text-fill-color:#eaf4ff;
+    text-shadow:0 2px 24px rgba(80,160,255,.55); }
   #endstats { font-size:16px; line-height:2; color:#cfd6e4; margin:10px 0 26px; letter-spacing:1px; }
   #endstats b { color:#fff; }
   .note { margin-top:18px; font-size:12px; color:#6b7288; letter-spacing:1px; }
@@ -1794,10 +1794,16 @@ function endRound(winner, reason) {
   if (document.pointerLockElement) document.exitPointerLock();
   const mins = Math.floor(state.time / 60), secs = Math.floor(state.time % 60);
   el.endtitle.textContent = winner === 'draw' ? 'DRAW' : (winner === BLUE ? 'VICTORY' : 'DEFEAT');
-  el.endtitle.style.backgroundImage = winner === BLUE
-    ? 'linear-gradient(180deg,#bfe9ff,#2e7bff 60%,#0e2a66)'
-    : (winner === 'draw' ? 'linear-gradient(180deg,#e8ecf4,#8b93a7)'
-    : 'linear-gradient(180deg,#ffc46b,#ff7b2e 60%,#662a0e)');
+  /* Solid title color + glow per outcome (gradient background-clip:text proved unreliable) */
+  const titleFx = winner === BLUE
+    ? { color:'#eaf4ff', shadow:'0 2px 24px rgba(80,160,255,.55)' }
+    : (winner === 'draw'
+    ? { color:'#e8ecf4', shadow:'0 2px 24px rgba(140,150,170,.45)' }
+    : { color:'#ffe9d2', shadow:'0 2px 24px rgba(255,140,60,.55)' });
+  el.endtitle.style.backgroundImage = 'none';
+  el.endtitle.style.color = titleFx.color;
+  el.endtitle.style.webkitTextFillColor = titleFx.color;
+  el.endtitle.style.textShadow = titleFx.shadow;
   el.endsub.textContent = (reason || '').toUpperCase() + ' — BLUE ' + state.scores.blue + ' : ' + state.scores.orange + ' ORANGE';
   el.endstats.innerHTML =
     'KILLS <b>' + state.playerStats.kills + '</b> &nbsp;·&nbsp; DEATHS <b>' + state.playerStats.deaths + '</b>' +
